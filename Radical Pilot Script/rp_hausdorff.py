@@ -30,7 +30,7 @@ if __name__ == "__main__":
     try:
         session   = rp.Session ()
         c         = rp.Context ('ssh')
-        c.user_id = 'tg824689'
+        c.user_id = ''
         session.add_context (c)
 
         print "initialize pilot manager ..."
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         pdesc.resource = "xsede.stampede"
         pdesc.runtime  = 540 # minutes
         pdesc.cores    = 64
-        pdesc.project  = "TG-MCB090174"
+        pdesc.project  = ""
         pdesc.cleanup  = False
 
         # submit the pilot.
