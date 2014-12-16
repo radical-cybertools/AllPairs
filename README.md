@@ -25,12 +25,12 @@ cd ..
 ```
 
 Next, in rp_hausdorff.py make the following changes:
-* Line 31 - add your username on target system (if your username on target system is the same as on your local system then comment out
-lines 30-32)
+* Line 33 - add your username on target system (if your username on target system is the same as on your local system then comment out
+lines 32-34)
 
-* Line 39 - provide name of the target system. Default target system is Stampede.
+* Line 41 - provide name of the target system. Default target system is Stampede (xsede.stampede).
 
-* Line 42 - provide project name on target system (if you run this script locally comment out this line)
+* Line 44 - provide project name on target system (if you run this script locally comment out this line)
 
 As a final step we must provide MongoDB url:
 ```
