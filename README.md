@@ -1,7 +1,7 @@
 AllPairs
 ========
 
-RADICAL Pilot Script
+RADICAL Pilot Script Usage
 --------------------
 #Installation
 
