@@ -34,7 +34,7 @@ lines 32-34)
 
 As a final step we must provide MongoDB url:
 ```
-export RADICAL_PILOT_DBURL='mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/'
+export RADICAL_PILOT_DBURL='mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/'
 ```
 
 Finally we can run the script:
