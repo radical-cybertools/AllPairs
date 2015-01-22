@@ -45,7 +45,7 @@ if __name__ == "__main__":
         # Here the Radical Pilot Session is defined.
         session   = rp.Session()
         c         = rp.Context('ssh') # Connection type to the remote target machine
-        c.user_id = 'tg824689' #The user name for the remote target machine
+        c.user_id = '' #The user name for the remote target machine
         session.add_context(c)
         
         print "Initialize Pilot Manager..."
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         PilotDescr.resource = "xsede.stampede"
         PilotDescr.runtime  = 40 #Always in minutes
         PilotDescr.cores    = 4
-        PilotDescr.project  = "TG-MCB090174"
+        PilotDescr.project  = ""
         PilotDescr.cleanup  = False
 
         #Submitting Pilot
