@@ -34,7 +34,7 @@ if __name__ == "__main__":
     try:
         session   = rp.Session ()
         c         = rp.Context ('ssh')
-        c.user_id = 'tg824689'
+        c.user_id = ''
         session.add_context (c)
 
         print "initialize pilot manager ..."
