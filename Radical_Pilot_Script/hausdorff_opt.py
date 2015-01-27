@@ -3,8 +3,6 @@
 import sys, getopt,ast
 import numpy as np
 import argparse
-import gc
-
 
 def dH((P, Q)):
     def vsqnorm(v, axis=None):
@@ -16,33 +14,53 @@ def dH((P, Q)):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("start", help="Enter number of starting trajectory")
-    parser.add_argument("end", help="Enter number of ending trajectory")
+    parser.add_argument("element_set1", help="The first Set of trajectories that will be used")
+    parser.add_argument("element_set2", help="The second set of trajectories that will be used")
     parser.add_argument("sel", help="Enter aa, ha, or ca for atom selection")
     parser.add_argument("size", help="Trajectories length. Valid Values: short,med,long. Default Value: short")
-    parser.add_argument("pairs", help="A list with the pairs that will be checked")
     args = parser.parse_args()
 
-    start, end = int(args.start), int(args.end)
+    set1 = ast.literal_eval(args.element_set1)
+    set2 = ast.literal_eval(args.element_set2)
     sel = args.sel
-    pairs = ast.literal_eval(args.pairs)
     size = args.size
     if size == 'med':
         print "Medium"
-        trj_list = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
+        trj_list1 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
-                                 for i in xrange(start,end+1)]
+                                 for i in set1]
     elif size == 'long':
         print "Long"
-        trj_list = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
+        trj_list1 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
-                                 for i in xrange(start,end+1)]
+                                 for i in set1]
     else:
         print "Short"
-        trj_list = [np.load('trj_%s_%03i.npz.npy' % (sel, i)) for i in xrange(start,end+1)]
+        trj_list1 = [np.load('trj_%s_%03i.npz.npy' % (sel, i)) for i in set1]
 
-    for pair in pairs:
-        comp=dH((trj_list[pair[0]-start],trj_list[pair[1]-start]))
-        print pair,':',comp
+    if set2 != set1:
+        if size == 'med':
+            print "Medium"
+            trj_list2 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
+                                     np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
+                                     for i in set2]
+        elif size == 'long':
+            print "Long"
+            trj_list2 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
+                                     np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
+                                     np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
+                                     np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
+                                     for i in set2]
+        else:
+            print "Short"
+            trj_list2 = [np.load('trj_%s_%03i.npz.npy' % (sel, i)) for i in set2]
+    else:
+        trj_list2 = trj_list1
+
+
+    for i in range(1,len(set1)+1):
+        for j in range(1,len(set2)+1):
+            comp=dH((trj_list1[i-1],trj_list2[j-1]))
+            print '[{0},{1}]'.format(set1[i-1],set2[j-1]),':',comp

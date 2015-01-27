@@ -25,16 +25,17 @@ def all_pairs (n) :
 if __name__ == "__main__":
     print datetime.now()
     NUMBER_OF_TRAJECTORIES = 192
-    ATOM_SEL = 'aa'
+    ATOM_SEL = 'ca'
     TRAJ_SIZE='short'
     MY_STAGING_AREA = 'staging:///'
-    TRJ_LOCATION = ''
+    TRJ_LOCATION = '' #Path that points to the folder the trajectories are
     SHARED_HAUSDORFF = 'hausdorff_opt.py'
+    WINDOW_SIZE = 24
 
     try:
         session   = rp.Session ()
         c         = rp.Context ('ssh')
-        c.user_id = 'tg824689'
+        c.user_id = ''
         session.add_context (c)
 
         print "initialize pilot manager ..."
@@ -43,9 +44,9 @@ if __name__ == "__main__":
 
         pdesc = rp.ComputePilotDescription ()
         pdesc.resource = "xsede.stampede"
-        pdesc.runtime  = 60 # minutes
+        pdesc.runtime  = 30 # minutes
         pdesc.cores    = 32
-        pdesc.project  = ""
+        pdesc.project  = "" #Project allocation
         pdesc.cleanup  = False
 
         # submit the pilot.
@@ -63,11 +64,7 @@ if __name__ == "__main__":
         fshared_list   = list()
         
         # list of files to stage: the script, and the 5 trajectories
-        fnames = list()
-
-        for idx in range (1, NUMBER_OF_TRAJECTORIES+1) :
-            fnames.append ('trj_%s_%03i.npz.npy' % (ATOM_SEL,idx))
-        
+              
         fname_stage = []
         # stage all files to the staging area
         src_url = 'file://%s/%s' % (os.getcwd(), SHARED_HAUSDORFF)
@@ -79,17 +76,6 @@ if __name__ == "__main__":
                     'action': rp.TRANSFER,
         }
         fname_stage.append (sd_pilot)
-        # for fname in fnames :
-        #     src_url = 'file:///home/iparask/Desktop/trj_RADICAL/converted/%s' % (fname)
-
-        #     print src_url
-
-        #     sd_pilot = {'source': src_url,
-        #                 'target': os.path.join(MY_STAGING_AREA, fname),
-        #                 'action': rp.LINK,
-        #     }
-
-        #     fname_stage.append (sd_pilot)
            
         # Synchronously stage the data to the pilot
         pilot.stage_in(fname_stage)
@@ -97,42 +83,46 @@ if __name__ == "__main__":
         print "describe compute units ..."
 
         print "all pairs: "
-        print all_pairs ( NUMBER_OF_TRAJECTORIES )
         # we create one CU for each unique pair of trajectories
         cudesc_list = []
 
         pairs = all_pairs (NUMBER_OF_TRAJECTORIES)
 
-        comps = 1 if len(pairs) < pdesc.cores else len(pairs)/pdesc.cores + 1
-        print "Comps : ",comps
-        for i in range(1,pdesc.cores+1):
-            print "Set of Comps : ", i
-            sel_comps = pairs[(i-1)*comps:i*comps]
-            print sel_comps 
-            start = min([min(c,d) for c,d in sel_comps])
-            end = max([max(c,d) for c,d in sel_comps])
-
-            fshared = list()
-            shared = {'source': os.path.join(MY_STAGING_AREA, SHARED_HAUSDORFF),
+        
+        for i in range(1,NUMBER_OF_TRAJECTORIES+1,WINDOW_SIZE):
+            for j in range(i,NUMBER_OF_TRAJECTORIES+1,WINDOW_SIZE):
+                fshared = list()
+                shared = {'source': os.path.join(MY_STAGING_AREA, SHARED_HAUSDORFF),
                          'target': SHARED_HAUSDORFF,
-                         'action': rp.LINK}
-            fshared.append(shared)
-
-            for j in range(start,end+1):
-                shared = {'source': ('file://%s/trj_%s_%03i.npz.npy' % (TRJ_LOCATION,ATOM_SEL,j)),
-                         'target': ('trj_%s_%03i.npz.npy' % (ATOM_SEL,j)),
                          'action': rp.LINK}
                 fshared.append(shared)
 
-            # define the compute unit, to compute over the trajectory pair
-            cudesc = rp.ComputeUnitDescription()
-            cudesc.executable    = "python"
-            cudesc.pre_exec      = ["module load python/2.7.3-epd-7.3.2"]
-            cudesc.input_staging = fshared
-            cudesc.arguments     = ['hausdorff_opt.py', start, end, ATOM_SEL, TRAJ_SIZE, sel_comps]
-            cudesc.cores         = 1
+                if i == j:
+                    shared = [{'source': 'file://%s/trj_%s_%03i.npz.npy' % (TRJ_LOCATION,ATOM_SEL,k),
+                              'target' : 'trj_%s_%03i.npz.npy' % (ATOM_SEL,k),
+                              'action' : rp.LINK} for k in range(i,i+WINDOW_SIZE)]
+                    fshared.extend(shared)
+                else:
+                    shared = [{'source': 'file://%s/trj_%s_%03i.npz.npy' % (TRJ_LOCATION,ATOM_SEL,k),
+                              'target' : 'trj_%s_%03i.npz.npy' % (ATOM_SEL,k),
+                              'action' : rp.LINK} for k in range(i,i+WINDOW_SIZE)]
+                    fshared.extend(shared)
+                    shared = [{'source': 'file://%s/trj_%s_%03i.npz.npy' % (TRJ_LOCATION,ATOM_SEL,k),
+                              'target' : 'trj_%s_%03i.npz.npy' % (ATOM_SEL,k),
+                              'action' : rp.LINK} for k in range(j,j+WINDOW_SIZE)]
+                    fshared.extend(shared)
 
-            cudesc_list.append (cudesc)
+            # define the compute unit, to compute over the trajectory pair
+                cudesc = rp.ComputeUnitDescription()
+                cudesc.executable    = "python"
+                cudesc.pre_exec      = ["module load python/2.7.3-epd-7.3.2"]
+                cudesc.input_staging = fshared
+                cudesc.arguments     = ['hausdorff_opt2.py', range(i,i+WINDOW_SIZE), range(j,j+WINDOW_SIZE), ATOM_SEL, TRAJ_SIZE]
+                cudesc.cores         = 1
+
+                cudesc_list.append (cudesc)
+
+                print "Computing All-Pair for ", range(i,i+WINDOW_SIZE), "and ",range(j,j+WINDOW_SIZE)
 
         # submit, run and wait and...
         print "submit units to unit manager ..."
@@ -145,7 +135,7 @@ if __name__ == "__main__":
 
         units_total_time = timedelta(0)
 
-        fp=open('output_{0}_{2}_{3}_traj_stampede_{1}cores.log'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),'w')
+        fp=open('output_{0}_{2}_{3}_traj_stampede_{1}cores2.log'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),'w')
         comp_starting_time = list()
         comp_ending_time = list()
         #... voila!
@@ -173,8 +163,8 @@ if __name__ == "__main__":
                    unit.exit_code, unit.start_time,          unit.stop_time,
                    unit.stdout,    unit.stderr))
             units_total_time = units_total_time + unit.stop_time - unit.start_time
-        np.save('starting_times_{0}_{2}_{3}_traj_stampede_{1}cores.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_starting_time))
-        np.save('ending_times_{0}_{2}_{3}_traj_stampede_{1}cores.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_ending_time))
+        np.save('starting_times_{0}_{2}_{3}_traj_stampede_{1}cores2.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_starting_time))
+        np.save('ending_times_{0}_{2}_{3}_traj_stampede_{1}cores2.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_ending_time))
         comp_ending_time.sort()
         comp_starting_time.sort()
         print "Time To Completion with queue time (in secs) is ",(ending_time-starting_time).total_seconds()
