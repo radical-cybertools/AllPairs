@@ -1,30 +1,21 @@
 AllPairs
 ========
 
-RADICAL Pilot Script Usage
+#RADICAL Pilot Script Usage
 --------------------
-#Installation
+##Installation
 
 First you need to install Radical-Pilot on your system in a fresh virtualenv. Instructions can be found here:
 http://radicalpilot.readthedocs.org/en/latest/installation.html#id1
 
-Before running this script you need to install NumPy on your target system. On Stampede this can be done by:
-```
-module load intel/13.0.2.146
-module load python
-wget cython.org/release/Cython-0.21.tar.gz
-tar xvfz Cython-0.21.tar.gz
-cd Cython-0.21
-python setup.py install --user                 
-cd ..
+Please before running the script to a remote machine set a passwordless ssh connection.
+Instructions can be found here:
 
-git clone git://github.com/numpy/numpy.git numpy
-cd numpy
-python setup.py install --user                 
-cd ..
-```
+http://www.linuxproblem.org/art_9.html
 
-Next, in rp_hausdorff.py make the following changes:
+##Simple Script
+
+In rp_hausdorff.py make the following changes:
 * Line 33 - add your username on target system (if your username on target system is the same as on your local system then comment out
 lines 32-34)
 
@@ -39,7 +30,26 @@ export RADICAL_PILOT_DBURL='mongodb://ec2-54-221-194-147.compute-1.amazonaws.com
 
 Finally we can run the script:
 ```
-python rp_hausdorff.py 2> debug.log
+python rp_hausdorff.py
+```
+ 
+##Optimized Script
+
+In rp_hausdorff_opt.py make the following changes:
+* Line 31 - Set the path where the trajectory files exist in the target machine.
+
+* Line 38 - add your username on target system (if your target system is your local system then comment out lines 37-39)
+
+* Line 46 - provide name of the target system. Default target system is Stampede (xsede.stampede).
+
+* Line 44 - provide project name on target system (if you run this script locally comment out this line)
+
+As a final step we must provide MongoDB url:
+```
+export RADICAL_PILOT_DBURL='mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/'
 ```
 
- 
+Finally we can run the script:
+```
+python rp_hausdorff_opt.py
+```
