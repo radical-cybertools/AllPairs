@@ -53,3 +53,36 @@ Finally we can run the script:
 ```
 python rp_hausdorff_opt.py
 ```
+
+
+#EnsembleMD Toolkit script
+--------------------
+##Installation
+
+
+First you need to install Radical-Pilot on your system in a fresh virtualenv. Instructions can be found here:
+http://radicalensemblemd.readthedocs.org/en/latest/introduction.html
+
+Please before running the script to a remote machine set a passwordless ssh connection.
+Instructions can be found here:
+
+http://www.linuxproblem.org/art_9.html
+
+In enmd_hausdorff.py make the following changes:
+* Line 229 - provide name of the target system. Default target system is Localhost (local.localhost).
+
+* Line 232 - add your username on target system.
+
+* Line 233 - Provide the project allocation for the resource machine you want to use.
+
+* Line 240 - Give the number of trajectories to be used.
+
+Provide the Radical Pilot MongoDB url, if needed:
+```
+export RADICAL_PILOT_DBURL='mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/'
+```
+Run the script:
+```
+python enmd_hausdorff.py
+```
+
