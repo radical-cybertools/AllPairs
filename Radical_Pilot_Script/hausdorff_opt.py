@@ -19,42 +19,36 @@ if __name__ == "__main__":
     parser.add_argument("sel", help="Enter aa, ha, or ca for atom selection")
     parser.add_argument("size", help="Trajectories length. Valid Values: short,med,long. Default Value: short")
     args = parser.parse_args()
-
+    
     set1 = ast.literal_eval(args.element_set1)
     set2 = ast.literal_eval(args.element_set2)
     sel = args.sel
     size = args.size
     if size == 'med':
-        print "Medium"
         trj_list1 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
                                  for i in set1]
     elif size == 'long':
-        print "Long"
         trj_list1 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                  np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
                                  for i in set1]
     else:
-        print "Short"
         trj_list1 = [np.load('trj_%s_%03i.npz.npy' % (sel, i)) for i in set1]
 
     if set2 != set1:
         if size == 'med':
-            print "Medium"
             trj_list2 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                      np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
                                      for i in set2]
         elif size == 'long':
-            print "Long"
             trj_list2 = [np.hstack( ( np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                      np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                      np.load('trj_%s_%03i.npz.npy' % (sel, i)),    \
                                      np.load('trj_%s_%03i.npz.npy' % (sel, i)) ) ) \
                                      for i in set2]
         else:
-            print "Short"
             trj_list2 = [np.load('trj_%s_%03i.npz.npy' % (sel, i)) for i in set2]
     else:
         trj_list2 = trj_list1

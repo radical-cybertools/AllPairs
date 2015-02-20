@@ -3,6 +3,7 @@ import sys
 import saga
 import radical.pilot as rp
 import numpy as np
+import ast
 from datetime import datetime
 from datetime import timedelta
 
@@ -63,7 +64,6 @@ if __name__ == "__main__":
         print "stage shared data ..."
         fshared_list   = list()
         
-        # list of files to stage: the script, and the 5 trajectories
               
         fname_stage = []
         # stage all files to the staging area
@@ -115,9 +115,9 @@ if __name__ == "__main__":
             # define the compute unit, to compute over the trajectory pair
                 cudesc = rp.ComputeUnitDescription()
                 cudesc.executable    = "python"
-                cudesc.pre_exec      = ["module load python/2.7.3-epd-7.3.2"]
+                #cudesc.pre_exec      = ["module load python/2.7.3-epd-7.3.2"] #Only for Stampede
                 cudesc.input_staging = fshared
-                cudesc.arguments     = ['hausdorff_opt2.py', range(i,i+WINDOW_SIZE), range(j,j+WINDOW_SIZE), ATOM_SEL, TRAJ_SIZE]
+                cudesc.arguments     = ['hausdorff_opt.py', range(i,i+WINDOW_SIZE), range(j,j+WINDOW_SIZE), ATOM_SEL, TRAJ_SIZE]
                 cudesc.cores         = 1
 
                 cudesc_list.append (cudesc)
@@ -135,11 +135,18 @@ if __name__ == "__main__":
 
         units_total_time = timedelta(0)
 
-        fp=open('output_{0}_{2}_{3}_traj_stampede_{1}cores2.log'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),'w')
+        fp=open('output_{0}_{2}_{3}_traj_stampede_{1}cores.log'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),'w')
         comp_starting_time = list()
         comp_ending_time = list()
+        dists = np.zeros((NUMBER_OF_TRAJECTORIES,NUMBER_OF_TRAJECTORIES))
         #... voila!
         for unit in units :
+            lines=unit.stdout.splitlines()
+            for line in lines:
+                parts = line.split(':')
+                pos = ast.literal_eval(parts[0])
+                dists[pos[0]-1][pos[1]-1]=float(parts[1])
+                dists[pos[1]-1][pos[0]-1]=float(parts[1])
             print "* Unit %s @ %s \n"      \
                   "\t   state    : %s\n"   \
                   "\t   exit code: %s\n"   \
@@ -163,8 +170,9 @@ if __name__ == "__main__":
                    unit.exit_code, unit.start_time,          unit.stop_time,
                    unit.stdout,    unit.stderr))
             units_total_time = units_total_time + unit.stop_time - unit.start_time
-        np.save('starting_times_{0}_{2}_{3}_traj_stampede_{1}cores2.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_starting_time))
-        np.save('ending_times_{0}_{2}_{3}_traj_stampede_{1}cores2.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_ending_time))
+        np.save('starting_times_{0}_{2}_{3}_traj_stampede_{1}cores.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_starting_time))
+        np.save('ending_times_{0}_{2}_{3}_traj_stampede_{1}cores.npz.npy'.format(NUMBER_OF_TRAJECTORIES,pdesc.cores,ATOM_SEL,TRAJ_SIZE),np.array(comp_ending_time))
+        np.save('rp_hausdorff_distances.npz.npy',dists)
         comp_ending_time.sort()
         comp_starting_time.sort()
         print "Time To Completion with queue time (in secs) is ",(ending_time-starting_time).total_seconds()
