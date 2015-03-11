@@ -4,7 +4,7 @@
 Hausdorff Distance calculation script for Ensemble MD Toolkit
 """
 
-__author__       = "Ioannis Paraskevakos <i.parask@rutgers.edu>"
+__author__       = "Ioannis Paraskevakos <i.paraskev@rutgers.edu>"
 __copyright__    = "Copyright 2014, http://radical.rutgers.edu"
 __license__      = "MIT"
 
