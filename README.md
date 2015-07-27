@@ -61,7 +61,7 @@ python rp_hausdorff_opt.py
 
 
 First you need to install Radical-Pilot on your system in a fresh virtualenv. Instructions can be found here:
-http://radicalensemblemd.readthedocs.org/en/latest/introduction.html
+http://radicalensemblemd.readthedocs.org/en/latest/installation.html
 
 Please before running the script to a remote machine set a passwordless ssh connection.
 Instructions can be found here:
